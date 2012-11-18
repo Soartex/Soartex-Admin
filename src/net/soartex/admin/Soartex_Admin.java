@@ -2,9 +2,11 @@ package net.soartex.admin;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,14 +21,9 @@ import javax.swing.JTextArea;
 
 import net.soartex.admin.console.TextAreaOutputStream;
 import net.soartex.admin.helpers.TableManger;
-import net.soartex.admin.listeners.PrimaryListener;
 
 import org.eclipse.swt.SWT;
 
-import org.eclipse.swt.custom.TableEditor;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 
@@ -34,7 +31,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -43,7 +39,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
 
 public class Soartex_Admin {
 
@@ -77,10 +72,6 @@ public class Soartex_Admin {
 	public static Button update;
 
 	private static ProgressBar progress;
-
-	// TODO: Menu Items
-
-	// TODO: Methods
 
 	public static void main (final String[] args) {
 
@@ -131,7 +122,7 @@ public class Soartex_Admin {
 
 		// TODO: Selection Buttons
 		GridData gd = new GridData();
-		
+
 		technic = new Button(shell, SWT.PUSH);
 		ftb = new Button(shell, SWT.PUSH);
 		all = new Button(shell, SWT.PUSH);
@@ -161,7 +152,7 @@ public class Soartex_Admin {
 
 		// TODO: Mod Table
 
-		table = new Table(shell, SWT.BORDER | SWT.CHECK|SWT.FULL_SELECTION);
+		table = new Table(shell, SWT.BORDER |SWT.FULL_SELECTION);
 		name = new TableColumn(table, SWT.CENTER);
 		version = new TableColumn(table, SWT.CENTER);
 		gameversion = new TableColumn(table, SWT.CENTER);
@@ -169,7 +160,7 @@ public class Soartex_Admin {
 		modified = new TableColumn(table, SWT.CENTER);
 
 		new TableManger(table);
-		
+
 		name.setText(Strings.NAME_COLUMN);
 		version.setText(Strings.VERSION_COLUMN);
 		gameversion.setText(Strings.GAMEVERSION_COLUMN);
@@ -210,8 +201,6 @@ public class Soartex_Admin {
 		gd.verticalAlignment = SWT.FILL;
 
 		update.setLayoutData(gd);
-
-		update.setEnabled(false);
 
 		// TODO: Progress Bar
 
@@ -275,7 +264,7 @@ public class Soartex_Admin {
 				itemsInfo.add(itemtext);
 				readline = in.readLine();							
 			}//end of while
-			
+
 			name.setWidth(100);
 			gameversion.setWidth(50);
 			version.setWidth(50);
@@ -296,7 +285,7 @@ public class Soartex_Admin {
 			size.pack();
 			modified.pack();
 			System.out.println("=======DONE=======");
-			
+
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -456,19 +445,19 @@ public class Soartex_Admin {
 				@Override public void run () { 
 					setAll(false);
 					updateProgress(0, 10);
-					try {
-						TimeUnit.SECONDS.sleep(2);
-					} catch (final InterruptedException e) {
-						e.printStackTrace();
-					}
-					
-					
+					//try {
+					//	TimeUnit.SECONDS.sleep(2);
+					//} catch (final InterruptedException e) {
+					//	e.printStackTrace();
+					//}
+
+
 					updateProgress(10, 25);
 					updateProgress(25, 35);
 					updateProgress(35, 60);
 					updateProgress(60, 75);
+					exportTable();
 					updateProgress(75, 100);
-
 					System.out.println("==================");
 					System.out.println("Done!");
 					System.out.println("==================");
@@ -519,6 +508,34 @@ public class Soartex_Admin {
 
 		}
 
+		private static void exportTable(){
+			display.syncExec(new Runnable() {
+
+				@Override public void run () {
+					try{
+						new File(Strings.TEMPORARY_DATA_LOCATION_A).mkdirs();
+						File export = new File(Strings.TEMPORARY_DATA_LOCATION_A+"\\"+Strings.MOD_CSV);
+						System.out.println(export.getAbsolutePath());
+						FileWriter fw = new FileWriter(export);
+				        PrintWriter pw = new PrintWriter(fw);
+						for (final TableItem item : table.getItems()) {
+
+							for(int i=0; i<table.getColumnCount();i++){
+								pw.print(item.getText(i));
+								pw.print(",");
+							}
+							pw.print("\n");
+						}
+						pw.flush();
+					    pw.close();
+					    fw.close();
+					}catch(Exception e){
+						e.printStackTrace();
+					}
+				}});
+			
+
+		}
 		private static void updateProgress (final int from, final int to) {
 
 			display.asyncExec(new Runnable() {

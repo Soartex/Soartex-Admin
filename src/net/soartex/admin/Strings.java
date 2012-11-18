@@ -61,7 +61,7 @@ class Strings {
 
 	public static final String ZIP_FILES = "Texture Packs (*.zip)";
 
-	public static final String PATCH_BUTTON = "Patch!";
+	public static final String PATCH_BUTTON = "Update!";
 
 	public static final String LANGUAGE_ITEM = "Language";
 
