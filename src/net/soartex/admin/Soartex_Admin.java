@@ -16,14 +16,25 @@ import java.util.concurrent.TimeUnit;
 import java.util.prefs.Preferences;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import net.soartex.admin.console.TextAreaOutputStream;
-import net.soartex.admin.helpers.TableManger;
+import net.soartex.admin.helpers.FTPupload;
 
 import org.eclipse.swt.SWT;
 
+import org.eclipse.swt.custom.ControlEditor;
+import org.eclipse.swt.custom.TableCursor;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 
@@ -39,6 +50,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 
 public class Soartex_Admin {
 
@@ -49,6 +61,12 @@ public class Soartex_Admin {
 	private static URL tabledata;
 
 	private static HashMap<TableItem, String> moddatamap;
+	
+	private static String password;
+	
+	private static String username;
+	
+	private static String host;
 
 	// TODO: SWT Components
 
@@ -75,6 +93,8 @@ public class Soartex_Admin {
 
 	public static void main (final String[] args) {
 
+		askInfo();
+		
 		initializeLogger();
 
 		initializeShell();
@@ -82,6 +102,21 @@ public class Soartex_Admin {
 		initializeComponents();
 
 		startEventLoop();
+	}
+
+	private static void askInfo() {
+		host = JOptionPane.showInputDialog ( "Enter FTP Host" ); 
+		host=host.replaceAll("@", "%40");
+		username = JOptionPane.showInputDialog ( "Enter FTP Username" ); 
+		username=username.replaceAll("@", "%40");
+		JPasswordField passwordField = new JPasswordField();
+		passwordField.setEchoChar('*');
+		Object[] obj = {"Please enter the password:\n\n", passwordField};
+		Object stringArray[] = {"OK"};
+		JOptionPane.showOptionDialog(null, obj, "Enter FTP Password",0, JOptionPane.PLAIN_MESSAGE, null, stringArray, obj);
+		password = new String(passwordField.getPassword());
+		password=password.replaceAll("@", "%40");
+		
 	}
 
 	private static void initializeLogger() {
@@ -159,7 +194,7 @@ public class Soartex_Admin {
 		size = new TableColumn(table, SWT.CENTER);
 		modified = new TableColumn(table, SWT.CENTER);
 
-		new TableManger(table);
+		new TableManger();
 
 		name.setText(Strings.NAME_COLUMN);
 		version.setText(Strings.VERSION_COLUMN);
@@ -210,6 +245,9 @@ public class Soartex_Admin {
 
 	}
 
+	public static void reloadTable(final Table table2){
+		table=table2;
+	}
 	private static void loadTable () {
 		try{
 			String readline = null;
@@ -454,9 +492,16 @@ public class Soartex_Admin {
 
 					updateProgress(10, 25);
 					updateProgress(25, 35);
+					System.out.println("==================");
+					System.out.println("Exporting Table");
+					System.out.println("==================");
+					exportTable();
 					updateProgress(35, 60);
 					updateProgress(60, 75);
-					exportTable();
+					System.out.println("==================");
+					System.out.println("Uploading");
+					System.out.println("==================");
+					uploadTable();
 					updateProgress(75, 100);
 					System.out.println("==================");
 					System.out.println("Done!");
@@ -507,13 +552,17 @@ public class Soartex_Admin {
 			});
 
 		}
-
+		
+		private static void uploadTable() {
+			new FTPupload(host, username, password,Strings.TEMPORARY_DATA_LOCATION_A+"\\"+Strings.MOD_CSV,Strings.MOD_CSV);
+		}
 		private static void exportTable(){
 			display.syncExec(new Runnable() {
 
 				@Override public void run () {
 					try{
 						new File(Strings.TEMPORARY_DATA_LOCATION_A).mkdirs();
+						new File(Strings.TEMPORARY_DATA_LOCATION_A).deleteOnExit();
 						File export = new File(Strings.TEMPORARY_DATA_LOCATION_A+"\\"+Strings.MOD_CSV);
 						System.out.println(export.getAbsolutePath());
 						FileWriter fw = new FileWriter(export);
@@ -558,5 +607,126 @@ public class Soartex_Admin {
 
 		}
 
+	}
+	private static class TableManger {
+		public TableManger(){
+
+			// create a TableCursor to navigate around the table
+			final TableCursor cursor = new TableCursor(table, SWT.NONE);
+			// create an editor to edit the cell when the user hits "ENTER" 
+			// while over a cell in the table
+			final ControlEditor editor = new ControlEditor(cursor);
+			editor.grabHorizontal = true;
+			editor.grabVertical = true;
+
+			cursor.addSelectionListener(new SelectionAdapter() {
+				// when the TableEditor is over a cell, select the corresponding row in 
+				// the table
+				public void widgetSelected(SelectionEvent e) {
+					table.setSelection(new TableItem[] { cursor.getRow()});
+				}
+				// when the user hits "ENTER" in the TableCursor, pop up a text editor so that 
+				// they can change the text of the cell
+				public void widgetDefaultSelected(SelectionEvent e) {
+					final Text text = new Text(cursor, SWT.NONE);
+					TableItem row = cursor.getRow();
+					int column = cursor.getColumn();
+					text.setText(row.getText(column));
+					text.addKeyListener(new KeyAdapter() {
+						public void keyPressed(KeyEvent e) {
+							// close the text editor and copy the data over 
+							// when the user hits "ENTER"
+							if (e.character == SWT.CR) {
+								TableItem row = cursor.getRow();
+								int column = cursor.getColumn();
+								row.setText(column, text.getText());
+								text.dispose();
+							}
+							// close the text editor when the user hits "ESC"
+							if (e.character == SWT.ESC) {
+								text.dispose();
+							}
+						}
+					});
+					// close the text editor when the user tabs away
+					text.addFocusListener(new FocusAdapter() {
+						public void focusLost(FocusEvent e) {
+							text.dispose();
+						}
+					});
+					editor.setEditor(text);
+					text.setFocus();
+				}
+			});
+			// Hide the TableCursor when the user hits the "CTRL" or "SHIFT" key.
+			// This allows the user to select multiple items in the table.
+			cursor.addKeyListener(new KeyAdapter() {
+				public void keyPressed(KeyEvent e) {
+					if (e.keyCode == SWT.CTRL
+							|| e.keyCode == SWT.SHIFT
+							|| (e.stateMask & SWT.CONTROL) != 0
+							|| (e.stateMask & SWT.SHIFT) != 0) {
+						cursor.setVisible(false);
+					}
+				}
+			});
+			// When the user double clicks in the TableCursor, pop up a text editor so that 
+			// they can change the text of the cell.
+			cursor.addMouseListener(new MouseAdapter() {
+				public void mouseDown(MouseEvent e) {
+					final Text text = new Text(cursor, SWT.NONE);
+					TableItem row = cursor.getRow();
+					int column = cursor.getColumn();
+					text.setText(row.getText(column));
+					text.addKeyListener(new KeyAdapter() {
+						public void keyPressed(KeyEvent e) {
+							// close the text editor and copy the data over 
+							// when the user hits "ENTER"
+							if (e.character == SWT.CR) {
+								TableItem row = cursor.getRow();
+								int column = cursor.getColumn();
+								row.setText(column, text.getText());
+								text.dispose();
+							}
+							// close the text editor when the user hits "ESC"
+							if (e.character == SWT.ESC) {
+								text.dispose();
+							}
+						}
+					});
+					// close the text editor when the user clicks away
+					text.addFocusListener(new FocusAdapter() {
+						public void focusLost(FocusEvent e) {
+							text.dispose();
+						}
+					});
+					editor.setEditor(text);
+					text.setFocus();
+				}
+			});
+
+			// Show the TableCursor when the user releases the "SHIFT" or "CTRL" key.
+			// This signals the end of the multiple selection task.
+			table.addKeyListener(new KeyAdapter() {
+				public void keyReleased(KeyEvent e) {
+					if (e.keyCode == SWT.CONTROL && (e.stateMask & SWT.SHIFT) != 0)
+						return;
+					if (e.keyCode == SWT.SHIFT && (e.stateMask & SWT.CONTROL) != 0)
+						return;
+					if (e.keyCode != SWT.CONTROL
+							&& (e.stateMask & SWT.CONTROL) != 0)
+						return;
+					if (e.keyCode != SWT.SHIFT && (e.stateMask & SWT.SHIFT) != 0)
+						return;
+
+					TableItem[] selection = table.getSelection();
+					TableItem row = (selection.length == 0) ? table.getItem(table.getTopIndex()) : selection[0];
+					table.showItem(row);
+					cursor.setSelection(row, 0);
+					cursor.setVisible(true);
+					cursor.setFocus();
+				}
+			});
+		}
 	}
 }
