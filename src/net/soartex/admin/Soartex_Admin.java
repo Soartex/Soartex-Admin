@@ -18,10 +18,15 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import net.soartex.admin.console.TextAreaOutputStream;
+import net.soartex.admin.helpers.TableManger;
 import net.soartex.admin.listeners.PrimaryListener;
 
 import org.eclipse.swt.SWT;
 
+import org.eclipse.swt.custom.TableEditor;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 
@@ -29,6 +34,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -37,6 +43,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 
 public class Soartex_Admin {
 
@@ -154,14 +161,15 @@ public class Soartex_Admin {
 
 		// TODO: Mod Table
 
-		table = new Table(shell, SWT.BORDER | SWT.CHECK);
-
+		table = new Table(shell, SWT.BORDER | SWT.CHECK|SWT.FULL_SELECTION);
 		name = new TableColumn(table, SWT.CENTER);
 		version = new TableColumn(table, SWT.CENTER);
 		gameversion = new TableColumn(table, SWT.CENTER);
 		size = new TableColumn(table, SWT.CENTER);
 		modified = new TableColumn(table, SWT.CENTER);
 
+		new TableManger(table);
+		
 		name.setText(Strings.NAME_COLUMN);
 		version.setText(Strings.VERSION_COLUMN);
 		gameversion.setText(Strings.GAMEVERSION_COLUMN);
