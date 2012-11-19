@@ -23,10 +23,6 @@ class Strings {
 	static final String SPACE = " ";
 	static final String UNDERSCORE = "_";
 
-	static final String BYTES = " bytes";
-	static final String KILOBYTES = " kilobytes";
-	static final String MEGABYTES = " megabytes";
-
 	static final String DATE_FORMAT = "MM/dd/yyyy";
 
 	static final String TEMPORARY_DATA_LOCATION_A = getTMP() + File.separator + ".Soartex_Launcher_A";

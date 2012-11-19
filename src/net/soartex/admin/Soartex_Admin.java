@@ -67,6 +67,7 @@ public class Soartex_Admin {
 	private static String password;
 	private static String username;
 	private static String host;
+	private static String tablePath;
 
 	// TODO: SWT Components
 
@@ -112,11 +113,15 @@ public class Soartex_Admin {
 		//pasword
 		JPasswordField passwordField = new JPasswordField();
 		passwordField.setEchoChar('*');
+		//path
+		JTextField pathField = new JTextField();
+		pathField.setText("modded/patcherdata/mods.csv");
 		//main textbox
 		Object[] obj = {
 				"Enter FTP Host:\n",hostField,"\n",
 				"Enter FTP Username:\n",userField,"\n",
-				"Please enter the password:\n", passwordField};
+				"Please enter the password:\n", passwordField,"\n",
+				"Enter .cvs save path:\n",pathField,"\n",};
 		Object stringArray[] = {"OK"};
 		JOptionPane.showOptionDialog(null, obj, "Enter Info",0, JOptionPane.PLAIN_MESSAGE, null, stringArray, obj);
 		//host
@@ -128,6 +133,8 @@ public class Soartex_Admin {
 		//pasword
 		password = new String(passwordField.getPassword());
 		password=password.replaceAll("@", "%40");
+		//path
+		tablePath = pathField.getText();
 	}
 
 	private static void initializeLogger() {
@@ -168,7 +175,7 @@ public class Soartex_Admin {
 
 		// TODO: Mod Table
 		GridData gd = new GridData();
-		
+
 		table = new Table(shell, SWT.BORDER |SWT.FULL_SELECTION);
 		name = new TableColumn(table, SWT.CENTER);
 		version = new TableColumn(table, SWT.CENTER);
@@ -248,9 +255,9 @@ public class Soartex_Admin {
 		update.setLayoutData(gd);
 
 		// TODO: Progress Bar
-		
+
 		progress = new ProgressBar(shell, SWT.NORMAL);
-		
+
 		progress.setLayoutData(gd);
 
 	}
@@ -301,7 +308,7 @@ public class Soartex_Admin {
 				} catch(final Exception e){
 					itemtext[4] = "null";
 				}
-				
+
 				//save info
 				itemsInfo.add(itemtext);
 				readline = in.readLine();							
@@ -419,10 +426,11 @@ public class Soartex_Admin {
 	}
 
 	private static final class UpdateListener implements SelectionListener, Runnable {
-		@Override public void run () {
-			new Thread(new Runnable() {
 
-				@Override public void run () { 
+		@Override public void run () {
+			display.asyncExec(new Runnable() {
+
+				@Override public void run () {
 					setAll(false);
 					updateProgress(0, 10);
 					System.out.println("==================");
@@ -434,14 +442,19 @@ public class Soartex_Admin {
 					System.out.println("Uploading");
 					System.out.println("==================");
 					uploadTable();
-					updateProgress(60, 100);
+					updateProgress(60, 90);
+					System.out.println("==================");
+					System.out.println("Removing Temp Files");
+					System.out.println("==================");
+					deleteData();
+					updateProgress(90, 100);
 					System.out.println("==================");
 					System.out.println("Done!");
 					System.out.println("==================");
 					setAll(true);
+					updateProgress(0, 0);
 				}
-
-			}).start();
+			});
 		}
 
 		@Override public void widgetSelected (final SelectionEvent e) {
@@ -471,59 +484,70 @@ public class Soartex_Admin {
 
 		}
 
+		//upload to ftp
 		private static void uploadTable() {
-			new FTPupload(host, username, password,Strings.TEMPORARY_DATA_LOCATION_A+"\\"+Strings.MOD_CSV,Strings.MOD_CSV);
+			new FTPupload(host, username,password, Strings.TEMPORARY_DATA_LOCATION_A+"\\"+Strings.MOD_CSV,tablePath);
 		}
+		
+		//delete remains of program
+		private static void deleteData() {
+			delete(new File(Strings.TEMPORARY_DATA_LOCATION_A));
+		}
+		
+		//save table to temp dir
 		private static void exportTable(){
-			display.syncExec(new Runnable() {
+			try{
+				new File(Strings.TEMPORARY_DATA_LOCATION_A).mkdirs();
+				new File(Strings.TEMPORARY_DATA_LOCATION_A).deleteOnExit();
+				File export = new File(Strings.TEMPORARY_DATA_LOCATION_A+"\\"+Strings.MOD_CSV);
+				System.out.println(export.getAbsolutePath());
+				FileWriter fw = new FileWriter(export);
+				PrintWriter pw = new PrintWriter(fw);
+				for (final TableItem item : table.getItems()) {
 
-				@Override public void run () {
-					try{
-						new File(Strings.TEMPORARY_DATA_LOCATION_A).mkdirs();
-						new File(Strings.TEMPORARY_DATA_LOCATION_A).deleteOnExit();
-						File export = new File(Strings.TEMPORARY_DATA_LOCATION_A+"\\"+Strings.MOD_CSV);
-						System.out.println(export.getAbsolutePath());
-						FileWriter fw = new FileWriter(export);
-						PrintWriter pw = new PrintWriter(fw);
-						for (final TableItem item : table.getItems()) {
-
-							for(int i=0; i<table.getColumnCount();i++){
-								pw.print(item.getText(i));
-								pw.print(",");
-							}
-							pw.print("\n");
-						}
-						pw.flush();
-						pw.close();
-						fw.close();
-					}catch(Exception e){
-						e.printStackTrace();
+					for(int i=0; i<table.getColumnCount();i++){
+						pw.print(item.getText(i));
+						pw.print(",");
 					}
-				}});
-
-
+					pw.print("\n");
+				}
+				pw.flush();
+				pw.close();
+				fw.close();
+			}catch(Exception e){
+				e.printStackTrace();
+			}
 		}
 		private static void updateProgress (final int from, final int to) {
-
 			display.asyncExec(new Runnable() {
-
 				@Override public void run () {
-
 					for (int i = from ; i < to ; i++) {
-
 						progress.setSelection(i);
-
 						try { TimeUnit.MILLISECONDS.sleep(5); } catch (final InterruptedException e1) {}
 
 					}
-
 					progress.setSelection(to);
-
 				}
-
 			});
+		}
+		private static void delete (final File f) {
+
+			f.delete();
+
+			if (f.isFile()) return;
+
+			final File[] files = f.getAbsoluteFile().listFiles();
+
+			if (files == null) return;
+
+			for (final File file : files) {
+
+				delete(file);
+
+				f.delete();
+
+			}
 
 		}
-
 	}
 }

@@ -28,15 +28,17 @@ public class FTPupload {
         try {
             OutputStream os = cconn.openUploadStream(targetfile);
             FileInputStream is = new FileInputStream(localfile);
-            byte[] buf = new byte[16384];
+            byte[] buf = new byte[600];
             int c;
+            System.out.print("[");
             while (true) {
                 System.out.print(".");
                 c = is.read(buf);
-                if (c <= 0)  break;
-                System.out.print("[");
+                if (c <= 0)  {
+                	System.out.println("]");
+                	break;
+                }
                 os.write(buf, 0, c);
-                System.out.print("]");
             }
             os.close();
             is.close();
