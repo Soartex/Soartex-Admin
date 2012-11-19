@@ -3,10 +3,10 @@ package net.soartex.admin;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,15 +28,6 @@ import net.soartex.admin.helpers.TableManger;
 
 import org.eclipse.swt.SWT;
 
-import org.eclipse.swt.custom.ControlEditor;
-import org.eclipse.swt.custom.TableCursor;
-import org.eclipse.swt.events.FocusAdapter;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 
@@ -52,7 +43,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
 
 public class Soartex_Admin {
 
@@ -115,7 +105,7 @@ public class Soartex_Admin {
 		passwordField.setEchoChar('*');
 		//path
 		JTextField pathField = new JTextField();
-		pathField.setText("modded/patcherdata/mods.csv");
+		pathField.setText("modded/mods.csv");
 		//main textbox
 		Object[] obj = {
 				"Enter FTP Host:\n",hostField,"\n",
@@ -348,49 +338,40 @@ public class Soartex_Admin {
 	private static final class SelectButtonsListener implements SelectionListener {
 
 		@Override public void widgetSelected (final SelectionEvent e) {
-
-			/*if (e.widget == checkValid) {
-
-				for (final TableItem item : table.getItems()) {
-
-					item.setChecked(e.widget == all);
-
-				}
-
-			}  else if (e.widget == updateSize) {
-
-				try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL(Strings.MODDED_URL + Strings.FTB_LIST).openStream()))) {
-
-					for (final TableItem item : table.getItems()) {
-
-						item.setChecked(false);
-
-					}
-
-					String readline = in.readLine();
-
-					while (readline != null) {
-
-						for (final TableItem item : table.getItems()) {
-
-							if (readline.contains(item.getText())) item.setChecked(true);
-
-						}
-
-						readline = in.readLine();
-
-					}
-
-				} catch (final IOException e1) {
-
-					e1.printStackTrace();
-
-				}
-
-			}*/
-
+			if (e.widget == updateSize) {
+				//updateSize();
+			}
+			else if (e.widget == updateDate) {
+				
+			}
+			else if (e.widget == checkValid) {
+				
+			}
+			else if (e.widget == newRow) {
+				
+			}
 		}
 
+		private void updateSize(){
+			try{
+				String readline = null;			
+				final BufferedReader in = new BufferedReader(new InputStreamReader(tabledata.openStream()));
+				readline = in.readLine();
+				while (readline != null) {
+					HttpURLConnection conn = null;
+					System.out.println(Strings.MODDED_URL + readline.split(Strings.COMMA)[0].replace(Strings.SPACE, Strings.UNDERSCORE) + Strings.ZIP_FILES_EXT.substring(1));
+					final URL zipurl = new URL(Strings.MODDED_URL + readline.split(Strings.COMMA)[0].replace(Strings.SPACE, Strings.UNDERSCORE) + Strings.ZIP_FILES_EXT.substring(1));
+					conn = (HttpURLConnection) zipurl.openConnection();
+					conn.setRequestMethod("HEAD");
+		            conn.getInputStream();
+		            final long size =conn.getContentLength();					
+					table.getItem(0).setText(3, String.valueOf(size));
+					conn.disconnect();
+				}
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+		}
 		@Override public void widgetDefaultSelected (final SelectionEvent e) {}
 
 	}
@@ -488,12 +469,12 @@ public class Soartex_Admin {
 		private static void uploadTable() {
 			new FTPupload(host, username,password, Strings.TEMPORARY_DATA_LOCATION_A+"\\"+Strings.MOD_CSV,tablePath);
 		}
-		
+
 		//delete remains of program
 		private static void deleteData() {
 			delete(new File(Strings.TEMPORARY_DATA_LOCATION_A));
 		}
-		
+
 		//save table to temp dir
 		private static void exportTable(){
 			try{
