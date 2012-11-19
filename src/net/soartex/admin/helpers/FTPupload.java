@@ -48,12 +48,6 @@ public class FTPupload {
             ex.printStackTrace();
         }
     }
-
-    public static void main(String args[]) {
-        // Usage: FTPupload host, user, password, file
-        new FTPupload(args[0], args[1], args[2], args[3]);
-    }
-
 }
 
 class FTPclientConn {
