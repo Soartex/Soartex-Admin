@@ -46,10 +46,10 @@ class Strings {
 
 	//TODO: other strings
 
-	public static final String TECHNIC_BUTTON = "Technic";
-	public static final String FTB_BUTTON = "FTB (WIP!)";
-	public static final String ALL_BUTTON = "Select All";
-	public static final String NONE_BUTTON = "Select None";
+	public static final String VALID_BUTTON = "Test Validness";
+	public static final String UPDATESIZE_BUTTON = "Update File Size";
+	public static final String UPDATEDATE_BUTTON = "Update Date Modifed";
+	public static final String NEWROW_BUTTON = "Add New Row";
 
 	public static final String NAME_COLUMN = "Name";
 	public static final String VERSION_COLUMN = "Version";
@@ -57,25 +57,7 @@ class Strings {
 	public static final String SIZE_COLUMN = "Size";
 	public static final String MODIFIED_COLUMN = "Updated";
 
-	public static final String BROWSE_BUTTON = "Browse";
-
-	public static final String ZIP_FILES = "Texture Packs (*.zip)";
-
 	public static final String PATCH_BUTTON = "Update!";
-
-	public static final String LANGUAGE_ITEM = "Language";
-
-	public static final String ENGLISH_ITEM = "English";
-	public static final String FRENCH_ITEM = "French";
-	public static final String SPANISH_ITEM = "Spanish";
-	public static final String ITALIAN_ITEM = "Italian";
-	public static final String GERMAN_ITEM = "German";
-	public static final String HEBREW_ITEM = "Hebrew";
-	public static final String ARABIC_ITEM = "Arabic";
-	public static final String CHINESE_ITEM = "Chinese";
-	public static final String JAPANESE_ITEM = "Japanese";
-
-	public static final String HELP_ITEM = "Help";
 
 	// TODO: Methods
 
