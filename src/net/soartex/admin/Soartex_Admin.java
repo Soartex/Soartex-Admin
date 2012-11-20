@@ -1,5 +1,6 @@
 package net.soartex.admin;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -8,6 +9,8 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -339,39 +342,98 @@ public class Soartex_Admin {
 
 		@Override public void widgetSelected (final SelectionEvent e) {
 			if (e.widget == updateSize) {
-				//updateSize();
+				updateSize();
 			}
 			else if (e.widget == updateDate) {
-				
+				updateDate();
 			}
 			else if (e.widget == checkValid) {
-				
+				checkValid();
 			}
 			else if (e.widget == newRow) {
-				
+
 			}
 		}
 
 		private void updateSize(){
 			try{
+				System.out.println("==================");
+				System.out.println("Updating Sizes");
+				System.out.println("==================");
 				String readline = null;			
 				final BufferedReader in = new BufferedReader(new InputStreamReader(tabledata.openStream()));
 				readline = in.readLine();
-				while (readline != null) {
+				int count=0;
+				while (readline!=null) {
 					HttpURLConnection conn = null;
 					System.out.println(Strings.MODDED_URL + readline.split(Strings.COMMA)[0].replace(Strings.SPACE, Strings.UNDERSCORE) + Strings.ZIP_FILES_EXT.substring(1));
 					final URL zipurl = new URL(Strings.MODDED_URL + readline.split(Strings.COMMA)[0].replace(Strings.SPACE, Strings.UNDERSCORE) + Strings.ZIP_FILES_EXT.substring(1));
 					conn = (HttpURLConnection) zipurl.openConnection();
 					conn.setRequestMethod("HEAD");
-		            conn.getInputStream();
-		            final long size =conn.getContentLength();					
-					table.getItem(0).setText(3, String.valueOf(size));
+					conn.getInputStream();
+					final long size =conn.getContentLength();					
+					table.getItem(count++).setText(3, String.valueOf(size));
 					conn.disconnect();
+					readline = in.readLine();
 				}
+				System.out.println("=======DONE=======");
 			}catch(Exception e){
 				e.printStackTrace();
 			}
 		}
+		private void updateDate(){
+			try{
+				System.out.println("==================");
+				System.out.println("Updating Date Modifed");
+				System.out.println("==================");
+				String readline = null;			
+				final BufferedReader in = new BufferedReader(new InputStreamReader(tabledata.openStream()));
+				readline = in.readLine();
+				int count=0;
+				while (readline!=null) {
+					HttpURLConnection conn = null;
+					System.out.println(Strings.MODDED_URL + readline.split(Strings.COMMA)[0].replace(Strings.SPACE, Strings.UNDERSCORE) + Strings.ZIP_FILES_EXT.substring(1));
+					final URL zipurl = new URL(Strings.MODDED_URL + readline.split(Strings.COMMA)[0].replace(Strings.SPACE, Strings.UNDERSCORE) + Strings.ZIP_FILES_EXT.substring(1));
+					conn = (HttpURLConnection) zipurl.openConnection();
+					conn.setRequestMethod("HEAD");
+					conn.getInputStream();
+					String date = new SimpleDateFormat(Strings.DATE_FORMAT).format(new Date(conn.getLastModified()));
+					table.getItem(count++).setText(4, date);
+					conn.disconnect();
+					readline = in.readLine();
+				}
+				System.out.println("=======DONE=======");
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+		}
+		private void checkValid(){
+			try{
+				System.out.println("==================");
+				System.out.println("Seeing if mods are valid");
+				System.out.println("==================");
+				String readline = null;			
+				final BufferedReader in = new BufferedReader(new InputStreamReader(tabledata.openStream()));
+				readline = in.readLine();
+				int count=0;
+				while (readline!=null) {
+					System.out.println(Strings.MODDED_URL + readline.split(Strings.COMMA)[0].replace(Strings.SPACE, Strings.UNDERSCORE) + Strings.ZIP_FILES_EXT.substring(1));
+					final URL zipurl = new URL(Strings.MODDED_URL + readline.split(Strings.COMMA)[0].replace(Strings.SPACE, Strings.UNDERSCORE) + Strings.ZIP_FILES_EXT.substring(1));
+					try{
+						zipurl.openStream();
+					}catch(Exception e){
+						table.getItem(count).setBackground(display.getSystemColor(SWT.COLOR_RED));
+						e.printStackTrace();
+					}
+					count++;
+					readline = in.readLine();
+				}
+				System.out.println("=======DONE=======");
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+		}
+
 		@Override public void widgetDefaultSelected (final SelectionEvent e) {}
 
 	}

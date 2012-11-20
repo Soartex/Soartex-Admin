@@ -2,6 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/Soartex-Launcher/lib/swt.jar" sourcepath="/Soartex-Launcher/lib/src"/>
+	<classpathentry kind="lib" path="C:/Users/Patrick/Documents/GitHub/Soartex-Admin/lib/win64/swt.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
