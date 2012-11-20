@@ -1,6 +1,6 @@
 package net.soartex.admin;
 
-import java.awt.Color;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -40,6 +40,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
@@ -72,6 +73,7 @@ public class Soartex_Admin {
 	private static Button updateSize;
 	private static Button updateDate;
 	private static Button newRow;
+	private static Button deleteRow;
 
 	public static Table table;
 
@@ -82,6 +84,7 @@ public class Soartex_Admin {
 	public static TableColumn modified;
 
 	public static Button update;
+	public static Button save;
 
 	private static ProgressBar progress;
 
@@ -160,7 +163,7 @@ public class Soartex_Admin {
 
 		shell.addListener(SWT.Close, new ExitListener());
 
-		shell.setLayout(new GridLayout(4, true));
+		shell.setLayout(new GridLayout(5, true));
 
 	}
 
@@ -169,7 +172,7 @@ public class Soartex_Admin {
 		// TODO: Mod Table
 		GridData gd = new GridData();
 
-		table = new Table(shell, SWT.BORDER |SWT.FULL_SELECTION);
+		table = new Table(shell, SWT.BORDER|SWT.FULL_SELECTION|SWT.CHECK);
 		name = new TableColumn(table, SWT.CENTER);
 		version = new TableColumn(table, SWT.CENTER);
 		gameversion = new TableColumn(table, SWT.CENTER);
@@ -210,18 +213,21 @@ public class Soartex_Admin {
 		updateSize = new Button(shell, SWT.PUSH);
 		updateDate = new Button(shell, SWT.PUSH);
 		newRow = new Button(shell, SWT.PUSH);
+		deleteRow = new Button(shell, SWT.PUSH);
 
 		checkValid.setText(Strings.VALID_BUTTON);
 		updateSize.setText(Strings.UPDATESIZE_BUTTON);
 		updateDate.setText(Strings.UPDATEDATE_BUTTON);
 		newRow.setText(Strings.NEWROW_BUTTON);
+		deleteRow.setText(Strings.DELETEROW_BUTTON);
 
-		final SelectButtonsListener sblistener = new SelectButtonsListener();
+		final ButtonListener buttonListener = new ButtonListener();
 
-		checkValid.addSelectionListener(sblistener);
-		updateSize.addSelectionListener(sblistener);
-		updateDate.addSelectionListener(sblistener);
-		newRow.addSelectionListener(sblistener);
+		checkValid.addSelectionListener(buttonListener);
+		updateSize.addSelectionListener(buttonListener);
+		updateDate.addSelectionListener(buttonListener);
+		newRow.addSelectionListener(buttonListener);
+		deleteRow.addSelectionListener(buttonListener);
 
 		gd.grabExcessHorizontalSpace = true;
 		gd.horizontalAlignment = SWT.FILL;
@@ -231,12 +237,11 @@ public class Soartex_Admin {
 		updateSize.setLayoutData(gd);
 		updateDate.setLayoutData(gd);
 		newRow.setLayoutData(gd);
+		deleteRow.setLayoutData(gd);
 		// TODO: Patch Button
 
 		update = new Button(shell, SWT.PUSH);
-
-		update.setText(Strings.PATCH_BUTTON);
-
+		update.setText(Strings.UPDATE_BUTTON);
 		update.addSelectionListener(new UpdateListener());
 
 		gd = new GridData();
@@ -252,7 +257,16 @@ public class Soartex_Admin {
 		progress = new ProgressBar(shell, SWT.NORMAL);
 
 		progress.setLayoutData(gd);
-
+		
+		//TODO: save button
+		save = new Button(shell, SWT.PUSH);
+		save.setText(Strings.SAVE_BUTTON);
+		save.addSelectionListener(buttonListener);
+		
+		gd = new GridData();
+		gd.horizontalSpan = 1;
+		gd.horizontalAlignment = SWT.FILL;
+		save.setLayoutData(gd);
 	}
 
 	private static void loadTable () {
@@ -338,7 +352,7 @@ public class Soartex_Admin {
 
 	// TODO: Listeners
 
-	private static final class SelectButtonsListener implements SelectionListener {
+	private static final class ButtonListener implements SelectionListener {
 
 		@Override public void widgetSelected (final SelectionEvent e) {
 			if (e.widget == updateSize) {
@@ -351,7 +365,13 @@ public class Soartex_Admin {
 				checkValid();
 			}
 			else if (e.widget == newRow) {
-
+				newRow();
+			}
+			else if (e.widget == deleteRow) {
+				deleteRow();
+			}
+			else if (e.widget == save) {
+				saveCSVFile();
 			}
 		}
 
@@ -429,7 +449,68 @@ public class Soartex_Admin {
 				e.printStackTrace();
 			}
 		}
+		private void newRow(){		
+			final TableItem item = new TableItem(table, SWT.NONE);
+			item.setBackground(display.getSystemColor(SWT.COLOR_GRAY));
+			moddatamap.put(item, null);
+		}
+		private void deleteRow(){
+			int count = 0;
+			boolean[] checked;
+			String[] moddata;
 
+			count = 0;
+			checked = new boolean[table.getItems().length];
+			moddata = new String[table.getItems().length];
+
+			for (final TableItem item : table.getItems()) {
+				checked[count++] = item.getChecked();
+			}
+
+			count = 0;
+			for (final TableItem item : table.getItems()) {
+				moddata[count++] = moddatamap.get(item);
+			}
+
+			for (count = table.getItems().length-1;count>=0; count--) {
+				if (checked[count]) {
+					 moddatamap.remove(moddatamap.get(count));	
+					 table.remove(count);
+				}
+			}
+		}
+		private void saveCSVFile(){
+			FileDialog dialog = new FileDialog(shell, SWT.SAVE);
+			dialog.setFilterExtensions(new String[] { Strings.CSV_FILES_EXT });
+			final String selectedfile = dialog.open();
+			
+			if (selectedfile != null) {
+				System.out.println("==================");
+				System.out.println("Saving Table");
+				System.out.println("==================");
+				try{
+					new File(selectedfile).getParentFile().mkdirs();
+					File export = new File(selectedfile);
+					System.out.println(export.getAbsolutePath());
+					FileWriter fw = new FileWriter(export);
+					PrintWriter pw = new PrintWriter(fw);
+					for (final TableItem item : table.getItems()) {
+
+						for(int i=0; i<table.getColumnCount();i++){
+							pw.print(item.getText(i));
+							pw.print(",");
+						}
+						pw.print("\n");
+					}
+					pw.flush();
+					pw.close();
+					fw.close();
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+				System.out.println("=======DONE=======");
+			}
+		}
 		@Override public void widgetDefaultSelected (final SelectionEvent e) {}
 
 	}
@@ -534,7 +615,7 @@ public class Soartex_Admin {
 		}
 
 		//save table to temp dir
-		private static void exportTable(){
+		public static void exportTable(){
 			try{
 				new File(Strings.TEMPORARY_DATA_LOCATION_A).mkdirs();
 				new File(Strings.TEMPORARY_DATA_LOCATION_A).deleteOnExit();

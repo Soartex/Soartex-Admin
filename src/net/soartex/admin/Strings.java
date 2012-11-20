@@ -29,6 +29,7 @@ class Strings {
 	static final String TEMPORARY_DATA_LOCATION_B = getTMP() + File.separator + ".Soartex_Launcher_B";
 
 	static final String ZIP_FILES_EXT = "*.zip";
+	static final String CSV_FILES_EXT = "*.csv";
 
 	// TODO: Preferences Keys
 
@@ -46,6 +47,7 @@ class Strings {
 	public static final String UPDATESIZE_BUTTON = "Update File Size";
 	public static final String UPDATEDATE_BUTTON = "Update Date Modifed";
 	public static final String NEWROW_BUTTON = "Add New Row";
+	public static final String DELETEROW_BUTTON = "Delete Selected Rows";
 
 	public static final String NAME_COLUMN = "Name";
 	public static final String VERSION_COLUMN = "Version";
@@ -53,7 +55,8 @@ class Strings {
 	public static final String SIZE_COLUMN = "Size";
 	public static final String MODIFIED_COLUMN = "Updated";
 
-	public static final String PATCH_BUTTON = "Update!";
+	public static final String UPDATE_BUTTON = "Update!";
+	public static final String SAVE_BUTTON = "Save a Copy";
 
 	// TODO: Methods
 
