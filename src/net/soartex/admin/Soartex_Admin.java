@@ -411,14 +411,11 @@ public class Soartex_Admin {
 			try{
 				System.out.println("==================");
 				System.out.println("Seeing if mods are valid");
-				System.out.println("==================");
-				String readline = null;			
-				final BufferedReader in = new BufferedReader(new InputStreamReader(tabledata.openStream()));
-				readline = in.readLine();
+				System.out.println("==================");	
 				int count=0;
-				while (readline!=null) {
-					System.out.println(Strings.MODDED_URL + readline.split(Strings.COMMA)[0].replace(Strings.SPACE, Strings.UNDERSCORE) + Strings.ZIP_FILES_EXT.substring(1));
-					final URL zipurl = new URL(Strings.MODDED_URL + readline.split(Strings.COMMA)[0].replace(Strings.SPACE, Strings.UNDERSCORE) + Strings.ZIP_FILES_EXT.substring(1));
+				while (count!=table.getItemCount()) {
+					System.out.println(Strings.MODDED_URL + table.getItem(count).getText().replace(Strings.SPACE, Strings.UNDERSCORE) + Strings.ZIP_FILES_EXT.substring(1));
+					final URL zipurl = new URL(Strings.MODDED_URL + table.getItem(count).getText().replace(Strings.SPACE, Strings.UNDERSCORE) + Strings.ZIP_FILES_EXT.substring(1));
 					try{
 						zipurl.openStream();
 					}catch(Exception e){
@@ -426,7 +423,6 @@ public class Soartex_Admin {
 						e.printStackTrace();
 					}
 					count++;
-					readline = in.readLine();
 				}
 				System.out.println("=======DONE=======");
 			}catch(Exception e){
