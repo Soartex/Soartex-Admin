@@ -13,7 +13,7 @@ class Strings {
 
 	static final String ICON_NAME = "icon.ico";
 
-	static final String MODDED_URL = "http://soartex.net/modded/";
+	static String MODDED_URL = "";
 
 	static final String MOD_CSV = "mods.csv";
 	static final String TECHNIC_LIST = "technic.txt";
@@ -60,6 +60,11 @@ class Strings {
 
 	// TODO: Methods
 
+	
+	public static void modUrl(String u){
+		MODDED_URL=u;
+	}
+	
 	private static String getTMP () {
 
 		if (OS.contains("WIN")) return System.getenv("TMP");

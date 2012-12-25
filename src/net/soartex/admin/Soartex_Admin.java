@@ -4,15 +4,18 @@ package net.soartex.admin;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.Date;
+import java.text.Collator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 
 import java.util.concurrent.TimeUnit;
 
@@ -62,6 +65,7 @@ public class Soartex_Admin {
 	private static String username;
 	private static String host;
 	private static String tablePath;
+	private static String tablePathURL;
 
 	// TODO: SWT Components
 
@@ -96,12 +100,34 @@ public class Soartex_Admin {
 
 		initializeShell();
 
+		//new mod path
+		String readline = null;
+		try {
+			URL data2 = new URL("http://soartex.net/patcher/data/"+"ziplocation.txt");
+			final BufferedReader in2 = new BufferedReader(new InputStreamReader(data2.openStream()));
+			readline = in2.readLine();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Strings.modUrl(readline);
+		
 		initializeComponents();
 
 		startEventLoop();
 	}
 
 	private static void askInfo() {
+		String readline2 = null;
+		try {
+			URL data2 = new URL("http://soartex.net/patcher/data/"+"tablelocation.txt");
+			final BufferedReader in2 = new BufferedReader(new InputStreamReader(data2.openStream()));
+			readline2 = in2.readLine();
+			tablePathURL = readline2;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		//host
 		JTextField hostField = new JTextField();
 		//username
@@ -111,7 +137,11 @@ public class Soartex_Admin {
 		passwordField.setEchoChar('*');
 		//path
 		JTextField pathField = new JTextField();
-		pathField.setText("modded/mods.csv");
+		
+		//System.out.println(readline2.indexOf("/",8)+"");
+		readline2 = readline2.substring(readline2.indexOf("/",8));
+		
+		pathField.setText(readline2);
 		//main textbox
 		Object[] obj = {
 				"Enter FTP Host:\n",hostField,"\n",
@@ -181,6 +211,29 @@ public class Soartex_Admin {
 
 		new TableManger(table);
 
+		name.addListener(SWT.Selection, new Listener() {
+		      public void handleEvent(Event e) {
+		        // sort column 1
+		        TableItem[] items = table.getItems();
+		        Collator collator = Collator.getInstance(Locale.getDefault());
+		        for (int i = 1; i < items.length; i++) {
+		          String value1 = items[i].getText(0);
+		          for (int j = 0; j < i; j++) {
+		            String value2 = items[j].getText(0);
+		            if (collator.compare(value1, value2) < 0) {
+		              String[] values = { items[i].getText(0),
+		                  items[i].getText(1) };
+		              items[i].dispose();
+		              TableItem item = new TableItem(table, SWT.NONE, j);
+		              item.setText(values);
+		              items = table.getItems();
+		              break;
+		            }
+		          }
+		        }
+		      }
+		    });
+		
 		name.setText(Strings.NAME_COLUMN);
 		version.setText(Strings.VERSION_COLUMN);
 		gameversion.setText(Strings.GAMEVERSION_COLUMN);
@@ -274,7 +327,7 @@ public class Soartex_Admin {
 			String readline = null;
 			//iteminfo storage
 			ArrayList<String[]> itemsInfo = new ArrayList<String[]>();
-			tabledata = new URL(Strings.MODDED_URL + Strings.MOD_CSV);
+			tabledata = new URL(tablePathURL);
 			moddatamap = new HashMap<>();
 			final BufferedReader in = new BufferedReader(new InputStreamReader(tabledata.openStream()));
 			readline = in.readLine();

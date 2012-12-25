@@ -62,10 +62,14 @@ class FTPclientConn {
     }
 
     protected URL makeURL(String targetfile) throws MalformedURLException  {
-        if (user == null)
+        if (user == null){
+        	System.out.println("ftp://"+ host+ "/"+ targetfile);
             return new URL("ftp://"+ host+ "/"+ targetfile+ ";type=i");
-        else
+        }
+        else{
+        	System.out.println("ftp://"+ user+ ":"+ password+ "@"+ host+ "/"+ targetfile);
             return new URL("ftp://"+ user+ ":"+ password+ "@"+ host+ "/"+ targetfile+ ";type=i");
+        }
     }
 
     protected InputStream openDownloadStream(String targetfile) throws Exception {
